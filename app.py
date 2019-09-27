@@ -18,9 +18,11 @@ def get_groceryitems():
 # GET individual grocery item by id
 @app.route("/grocery_item/id=<int:id>", methods=['GET'])
 def get_groceryitem(id):
-    # TODO: check if num is in range of ids in grocery_items, otherwise it borks
     item = [item for item in grocery_items if item['id'] == id]
-    return jsonify({'grocery_items': item})
+    if item:
+        return jsonify({'grocery_items': item})
+    else:
+        return "Item not found"
 
 
 # POST computes and returns total price of list of items
@@ -34,17 +36,17 @@ def itemlist_price():
         total = 0
 
         for num in ids:
-            # TODO: check if num is in range of ids in grocery_items, otherwise it borks
             item = [item for item in grocery_items if item['id'] == int(num)]
-            total += int(item[0]['price'])
+            if item:
+                total += int(item[0]['price'])
         return(jsonify({'purchase_total': total}))
     else:
         return "No purchase item ids specified"
 
 
-# POST body accepts list of product ids and money sent:
+# PUT body accepts product ids and money sent:
 #  {"ids": ["1", "2", "1"], "money_sent": "15"}
-@app.route("/purchase_total", methods=['POST'])
+@app.route("/purchase", methods=['PUT'])
 def purchase_items():
     # 'ids' is list of id numbers
     ids = request.json['ids']
@@ -53,13 +55,13 @@ def purchase_items():
     if len(ids) > 0:
         total = 0
         changeToReturn = 0
-        shoppinglist = []
+        # shoppinglist = []
 
         for num in ids:
-            # TODO: check if num is in range of ids in grocery_list, otherwise it borks
             item = [item for item in grocery_items if item['id'] == int(num)]
-            shoppinglist.append(item)
-            total += int(item[0]['price'])
+            if item:
+                # shoppinglist.append(item)
+                total += int(item[0]['price'])
 
         if total <= monies:
             changeToReturn = monies - total
@@ -71,17 +73,19 @@ def purchase_items():
 
 
 # POST to purchase_log
-@app.route("/put_test", methods=['POST'])
+@app.route("/post_test", methods=['POST'])
 def update_log():
     ids = request.json['ids']
     created = datetime.datetime.now().timestamp()
 
+    purchase_log.append(jsonify({"ids": ids, "created": created}))
     # log = Log(ids, created)
 
     # purchase_log.append(log)
-    purchase_log.append(jsonify({"ids" : ids, "purchase_time": created}))
-# jsonify({"purchase_time": created, "ids_in_purchase": ids})
-    return  'ok!' # jsonify({"purchase_log": purchase_log})
+    # purchase_log.append(jsonify({"ids" : ids, "purchase_time": created}))
+    # jsonify({"purchase_time": created, "ids_in_purchase": ids})
+    # jsonify({"purchase_log": purchase_log})
+    return  'ok!' 
 
         
 # GET log of purchase history 
